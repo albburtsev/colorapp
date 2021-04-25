@@ -4,6 +4,21 @@ const port = 3000;
 
 const COLOR = process.env.COLOR || "#333";
 const BGCOLOR = process.env.BGCOLOR || "#FFF";
+const READY_DELAY = Number(process.env.READY_DELAY) || 5; // seconds
+const DIE_DELAY = Number(process.env.DIE_DELAY);
+
+let ready = false;
+let live = true;
+
+setTimeout(() => {
+	ready = true;
+}, READY_DELAY * 1000);
+
+if (DIE_DELAY) {
+	setTimeout(() => {
+		live = false;
+	}, DIE_DELAY * 1000);
+}
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -32,6 +47,22 @@ const html = `<!DOCTYPE html>
 
 app.get("/", (req, res) => {
 	res.send(html);
+});
+
+app.get("/ready", (req, res) => {
+	if (ready) {
+		res.status(200).send("Ok");
+	} else {
+		res.status(500).send("Not ready yet");
+	}
+});
+
+app.get("/health", (req, res) => {
+	if (ready && live) {
+		res.status(200).send("Ok");
+	} else {
+		res.status(500).send("Fatal error");
+	}
 });
 
 app.listen(port, () => {
